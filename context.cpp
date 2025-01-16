@@ -10,8 +10,7 @@ Bar::Bar(const Vec2& center, float width, float height, float angle) :
     colliders.emplace_back(topLeft, bottomLeft);
     colliders.emplace_back(topRight, bottomRight);
     colliders.emplace_back(bottomRight, bottomLeft);
-    colliders.emplace_back(topLeft, topRight);
-    std::cout << topLeft.get_x() << " " << topLeft.get_y() << std::endl;
+    colliders.emplace_back(topRight,topLeft);
 
 }
 
@@ -25,7 +24,7 @@ Vec2 Bar::rotate(const Vec2& point, float angle) const {
 
 Context::Context() {
     bars.emplace_back(Vec2(300.0, 300.0), 100.0, 20.0, 0);
-    spheres.emplace_back(Vec2(50,50),50);
+    spheres.emplace_back(Vec2(50.0,350.0),50.0);
 }
 
 void Context::addParticle(const Vec2& position, const Vec2& velocity, float radius, float mass) {
@@ -51,7 +50,7 @@ void Context::display(QPainter* painter, QPaintEvent* event) const {
         painter->drawPolygon(polygon);
     }
     for (const auto& sphere_c : spheres){
-        QRectF rectangle(sphere_c.center.get_x() - sphere_c.radius , sphere_c.center.get_y() + sphere_c.radius, sphere_c.radius, sphere_c.radius);
+        QRectF rectangle(sphere_c.center.get_x() - sphere_c.radius , sphere_c.center.get_y() - sphere_c.radius, 2*sphere_c.radius, 2*sphere_c.radius);
         painter->drawEllipse(rectangle);
     }
 
@@ -70,14 +69,37 @@ void Context::display(QPainter* painter, QPaintEvent* event) const {
 
 
 
-void resolveCollision(Particle& particle, const StaticConstraint& constraint, float dt) {
-    Vec2 expected_pos = particle.pos;
-    float C = constraint.penetration;
-    Vec2 delta = constraint.normal*(-C);
-    particle.velocity = delta*(1/dt) - particle.velocity;
-    Vec2 velocityAlongNormal = constraint.normal * (particle.velocity.get_x() * constraint.normal.get_x() + particle.velocity.get_y() * constraint.normal.get_y());
-    particle.velocity = particle.velocity - velocityAlongNormal;
+void resolvePlaneCollision(Particle& particle, const PlaneCollider& collider, float dt) {
+
+    Vec2 toParticle = particle.pos - collider.start;
+    float projectionLength = std::abs(toParticle.get_x() * collider.normal.get_x() + toParticle.get_y() * collider.normal.get_y());
+    Vec2 segmentDirection = (collider.end - collider.start).normalized();
+
+    //problème du sens du vecteur normal, qui peut être dans 2 sens
+
+    if (projectionLength < particle.radius) {
+        if (particle.velocity.length() < 5.0F){
+            particle.velocity = Vec2(particle.velocity.get_y(), 0.0f);
+        }
+        else{
+            particle.pos += particle.velocity.normalized()*(-(projectionLength-particle.radius));
+            particle.velocity = Vec2(particle.velocity.get_x()*0.6, -particle.velocity.get_y()*0.6);
+        }
+    }
 }
+
+void resolveSphereCollision(Particle& particle, SphereCollider& collider, float dt) {
+    Vec2 diff = particle.pos - collider.center;
+    Vec2 expected_pos = particle.pos;
+    double sdf = diff.length() - (particle.radius + collider.radius);
+    if (sdf < 0) {
+        Vec2 nc = diff.normalized();
+        particle.pos -= nc*sdf;
+        particle.velocity = particle.velocity*0.6;
+    }
+}
+
+
 
 
 void Context::updatePhysicalSystem(float dt) {
@@ -160,7 +182,7 @@ void Context::addStaticContactConstraints(float dt) {
             for (auto& collider : bar.colliders){
                 auto constraint = collider.checkContact(*particle);
                 if (constraint.has_value()) {
-                    resolveCollision(*particle, *constraint, dt);
+                    resolvePlaneCollision(*particle, collider, dt);
 
 
                 }
@@ -169,7 +191,7 @@ void Context::addStaticContactConstraints(float dt) {
         for (auto& sphere :spheres){
             auto constraint = sphere.checkContact(*particle);
             if (constraint.has_value()) {
-                resolveCollision(*particle, *constraint, dt);
+                resolveSphereCollision(*particle, sphere, dt);
             }
 
         }

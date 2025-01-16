@@ -29,12 +29,13 @@ public:
 
 class PlaneCollider : public Collider {
 private:
-    const Vec2 start;
-    const Vec2 end;
-    Vec2 normal;
     const float size;
 
 public:
+
+    const Vec2 start;
+    const Vec2 end;
+    Vec2 normal;
     PlaneCollider(const Vec2& _begin, const Vec2& _end);
 
     //nous cherchions une solution pour éviter des fuites de mémoire et nous avont trouvé ce type sur internet qui permet de renvoyer soit une valeur
