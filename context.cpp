@@ -76,6 +76,7 @@ void resolvePlaneCollision(Particle& particle, const PlaneCollider& collider, fl
     Vec2 segmentDirection = (collider.end - collider.start).normalized();
 
     //problème du sens du vecteur normal, qui peut être dans 2 sens
+    //cela pose problème car on aimerait avoir un "sens" fixé pour le rebond
 
     if (projectionLength < particle.radius) {
         if (particle.velocity.length() < 5.0F){
@@ -91,11 +92,11 @@ void resolvePlaneCollision(Particle& particle, const PlaneCollider& collider, fl
 void resolveSphereCollision(Particle& particle, SphereCollider& collider, float dt) {
     Vec2 diff = particle.pos - collider.center;
     Vec2 expected_pos = particle.pos;
-    double sdf = diff.length() - (particle.radius + collider.radius);
-    if (sdf < 0) {
+    float pen = diff.length() - (particle.radius + collider.radius);
+    if (pen < 0) {
         Vec2 nc = diff.normalized();
-        particle.pos -= nc*sdf;
-        particle.velocity = particle.velocity*0.6;
+        particle.pos -= nc*pen;
+        particle.velocity = (nc*(+2*particle.velocity.dot(nc)) + particle.velocity)*0.6;
     }
 }
 
