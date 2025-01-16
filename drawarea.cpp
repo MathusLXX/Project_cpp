@@ -14,7 +14,7 @@ void DrawingArea::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void DrawingArea::animate() {
-    context.updatePhysicalSystem(0.1f); // update tous les 16 ms
+    context.updatePhysicalSystem(0.1f); // update tous les 100 ms
     update();
 }
 

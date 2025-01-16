@@ -104,7 +104,6 @@ void resolveSphereCollision(Particle& particle, SphereCollider& collider, float 
 
 void Context::updatePhysicalSystem(float dt) {
     applyExternalForce(dt);
-    //dampVelocities(dt);
     addStaticContactConstraints(dt);
     addDynamicContactConstraints(dt);
     enforceBoundaryConstraints(400.0, 400.0);
@@ -117,14 +116,6 @@ void Context::applyExternalForce(float dt) {
     const Vec2 gravity(0.0f, 9.81f);
     for (auto& particle : particles) {
         particle->velocity = particle->velocity + gravity * dt;
-    }
-}
-
-
-void Context::dampVelocities(float dt) {
-    const float dampingFactor = 0.9f;
-    for (auto& particle : particles) {
-        particle->velocity = particle->velocity * dampingFactor;
     }
 }
 
