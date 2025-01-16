@@ -8,7 +8,7 @@ PlaneCollider::PlaneCollider(const Vec2& _begin, const Vec2& _end) :
 
 std::optional<StaticConstraint> PlaneCollider::checkContact(const Particle& particle) const {
     Vec2 toParticle = particle.pos - start;
-    float projectionLength = (toParticle.get_x() * normal.get_x() + toParticle.get_y() * normal.get_y());
+    float projectionLength = std::abs(toParticle.get_x() * normal.get_x() + toParticle.get_y() * normal.get_y());
     Vec2 segmentDirection = (end - start).normalized();
     float segmentLength = (end - start).length();
     float projectionOnSegment = (toParticle.get_x() * segmentDirection.get_x() + toParticle.get_y() * segmentDirection.get_y());
@@ -26,7 +26,7 @@ std::optional<StaticConstraint> PlaneCollider::checkContact(const Particle& part
 
 std::optional<StaticConstraint> SphereCollider::checkContact(const Particle& particle) const {
     Vec2 delta = particle.pos - center;
-    float dist = std::sqrt(delta.dot(delta));
+    float dist = delta.length();
     if (dist < particle.radius + radius) {
         return StaticConstraint{delta, particle.radius + radius - dist};
     }

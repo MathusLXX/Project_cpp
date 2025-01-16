@@ -43,13 +43,12 @@ public:
 };
 
 class SphereCollider : public Collider {
-private:
-    Vec2 center;
-    float radius;
+
 
 public:
     SphereCollider(const Vec2& center, float radius) : center(center), radius(radius) {}
-
+    Vec2 center;
+    float radius;
     std::optional<StaticConstraint> checkContact(const Particle& particle) const override;
 };
 

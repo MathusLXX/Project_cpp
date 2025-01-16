@@ -25,6 +25,7 @@ Vec2 Bar::rotate(const Vec2& point, float angle) const {
 
 Context::Context() {
     bars.emplace_back(Vec2(300.0, 300.0), 100.0, 20.0, 0);
+    spheres.emplace_back(Vec2(50,50),50);
 }
 
 void Context::addParticle(const Vec2& position, const Vec2& velocity, float radius, float mass) {
@@ -49,6 +50,10 @@ void Context::display(QPainter* painter, QPaintEvent* event) const {
 
         painter->drawPolygon(polygon);
     }
+    for (const auto& sphere_c : spheres){
+        QRectF rectangle(sphere_c.center.get_x() - sphere_c.radius , sphere_c.center.get_y() + sphere_c.radius, sphere_c.radius, sphere_c.radius);
+        painter->drawEllipse(rectangle);
+    }
 
 
     painter->setPen(Qt::blue);
@@ -65,10 +70,11 @@ void Context::display(QPainter* painter, QPaintEvent* event) const {
 
 
 
-void resolveCollision(Particle& particle, const StaticConstraint& constraint) {
-    particle.pos = particle.pos + constraint.normal * constraint.penetration;
-    float x_velocity;
-    particle.velocity = {-particle.velocity.get_x(), -particle.velocity.get_y()};
+void resolveCollision(Particle& particle, const StaticConstraint& constraint, float dt) {
+    Vec2 expected_pos = particle.pos;
+    float C = constraint.penetration;
+    Vec2 delta = constraint.normal*(-C);
+    particle.velocity = delta*(1/dt) - particle.velocity;
     Vec2 velocityAlongNormal = constraint.normal * (particle.velocity.get_x() * constraint.normal.get_x() + particle.velocity.get_y() * constraint.normal.get_y());
     particle.velocity = particle.velocity - velocityAlongNormal;
 }
@@ -77,7 +83,7 @@ void resolveCollision(Particle& particle, const StaticConstraint& constraint) {
 void Context::updatePhysicalSystem(float dt) {
     applyExternalForce(dt);
     //dampVelocities(dt);
-    addStaticContactConstraints();
+    addStaticContactConstraints(dt);
     addDynamicContactConstraints(dt);
     enforceBoundaryConstraints(400.0, 400.0);
     updateExpectedPosition(dt);
@@ -148,17 +154,24 @@ void Context::addDynamicContactConstraints(float dt) {
 
 
 
-void Context::addStaticContactConstraints() {
+void Context::addStaticContactConstraints(float dt) {
     for (auto& particle : particles) {
         for (auto& bar : bars) {
             for (auto& collider : bar.colliders){
                 auto constraint = collider.checkContact(*particle);
                 if (constraint.has_value()) {
-                    resolveCollision(*particle, *constraint);
+                    resolveCollision(*particle, *constraint, dt);
 
 
                 }
             }
+        }
+        for (auto& sphere :spheres){
+            auto constraint = sphere.checkContact(*particle);
+            if (constraint.has_value()) {
+                resolveCollision(*particle, *constraint, dt);
+            }
+
         }
     }
 }
