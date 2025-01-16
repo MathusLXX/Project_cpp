@@ -91,12 +91,11 @@ void resolvePlaneCollision(Particle& particle, const PlaneCollider& collider, fl
 
 void resolveSphereCollision(Particle& particle, SphereCollider& collider, float dt) {
     Vec2 diff = particle.pos - collider.center;
-    Vec2 expected_pos = particle.pos;
     float pen = diff.length() - (particle.radius + collider.radius);
     if (pen < 0) {
         Vec2 nc = diff.normalized();
         particle.pos -= nc*pen;
-        particle.velocity = (nc*(+2*particle.velocity.dot(nc)) + particle.velocity)*0.6;
+        particle.velocity = (nc*(2*particle.velocity.dot(nc)) + particle.velocity)*0.6;
     }
 }
 

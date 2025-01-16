@@ -29,14 +29,17 @@ public:
 
 class PlaneCollider : public Collider {
 private:
-    const float size;
+
 
 public:
 
     const Vec2 start;
     const Vec2 end;
     Vec2 normal;
+    const float size;
     PlaneCollider(const Vec2& _begin, const Vec2& _end);
+    PlaneCollider(const Vec2& _begin, const Vec2& _end, const Vec2& normalDir);//nous avons décidé d'utiliser un 2e constructeur pour "fixer" une normale que l'on peut contrôler
+
 
     //nous cherchions une solution pour éviter des fuites de mémoire et nous avont trouvé ce type sur internet qui permet de renvoyer soit une valeur
     //soit null sans risque de fuites de mémoires

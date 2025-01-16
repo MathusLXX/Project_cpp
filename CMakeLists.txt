@@ -28,6 +28,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
         vec2.h vec2.cpp
         collider.h collider.cpp
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET application APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
